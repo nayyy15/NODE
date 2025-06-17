@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape Room - Hora de Aventura</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #ffe082;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-image: url('https://i.imgur.com/J7D1rM7.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+    #game, #final {
+      display: none;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 10px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #ffca28;
+      border: none;
+      border-radius: 5px;
+    }
+    .input-section {
+      margin-top: 20px;
+    }
+    img.enigma-img {
+      display: block;
+      margin: 15px auto;
+      max-width: 300px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="intro">
+    <h1>Hora de Aventura - Escape Room</h1>
+    <img src="img/logo.png" alt="Hora de Aventura" style="max-width: 300px; display: block; margin: auto;">
+    <p>Você está preso na Terra de Ooo! Resolva todos os enigmas para escapar com Jake e Finn!</p>
+    <button onclick="startGame()">Iniciar</button>
+  </div>
+
+  <div id="game">
+    <h2 id="descricao"></h2>
+    <img id="enigmaImg" class="enigma-img" src="" alt="">
+    <div id="opcoes"></div>
+    <div class="input-section" id="inputArea" style="display: none">
+      <input type="text" id="resposta" placeholder="Digite sua resposta...">
+      <button onclick="verificarResposta()">Enviar</button>
+    </div>
+    <p id="feedback"></p>
+  </div>
+
+  <div id="final">
+    <h2>🎉 Você escapou da Terra de Ooo!</h2>
+    <p>Parabéns por resolver todos os enigmas com Finn e Jake!</p>
+    <audio id="audioFinal" controls>
+      <source src="img/encerramento.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
+  <script>
+    const enigmas = [
+      {
+        id: 'BMO',
+        texto: ' BMO mostra uma tela azul e diz: Posso jogar com você, gravar você, e até te mostrar quem você é. Quem sou?"',
+        resposta: 'espelho',
+        imagem: 'img/bmo.webp'
+      },
+      {
+        id: 'Rei Gelado',
+        texto: ' O Rei Gelado deixa um bilhete escondido entre seus pinguins: Sou frio e transparente, mas não sou invisível. Posso machucar se você cair em mim. Quem sou?"',
+        resposta: 'gelo',
+        imagem: 'img/rei.webp'
+      },
+      {
+        id: 'Marceline',
+        texto: ' Marceline toca seu baixo e diz:Vivo no escuro, tenho presas, mas não sou animal. Quem sou?"',
+        resposta: 'vampiro',
+        imagem: 'img/marci.webp'
+      },
+      {
+        id: 'Finn',
+        texto: ' Finn encontrou um mapa rasgado dentro de sua mochila. Nele está escrito: Sou algo que você pode quebrar apenas dizendo meu nome. O que sou?"',
+        resposta: 'silêncio',
+        imagem: 'img/finn.webp'
+      },
+      {
+        id: 'Princesa Jujuba',
+        texto: ' No laboratório da Princesa Jujuba, há um bilhete que diz: Sou feita de muitas partes, mas sem mim não há você. Quem sou?',
+        resposta: 'célula',
+        imagem: 'img/jujuba.webp'
+      },
+      {
+        id: 'Jake',
+        texto: ' Jake está relaxando e diz:Posso ser comprido ou curto, largo ou fino. Não tenho forma fixa, mas posso te alcançar onde estiver. Quem sou?"',
+        resposta: 'sombra',
+        imagem: 'img/jake.webp'
+      }
+    ];
+
+    let resolvidos = {};
+    let enigmaAtual = null;
+
+    function startGame() {
+      document.getElementById('intro').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      mostrarMenu();
+    }
+
+    function mostrarMenu() {
+      document.getElementById('descricao').innerText = 'O que deseja investigar?';
+      document.getElementById('feedback').innerText = '';
+      document.getElementById('inputArea').style.display = 'none';
+      document.getElementById('enigmaImg').style.display = 'none';
+
+      const opcoes = document.getElementById('opcoes');
+      opcoes.innerHTML = '';
+
+      enigmas.forEach((enigma, i) => {
+        const btn = document.createElement('button');
+        btn.innerText = `${i + 1}. Investigar ${enigma.id}`;
+        btn.disabled = resolvidos[enigma.id];
+        btn.onclick = () => apresentarEnigma(enigma);
+        opcoes.appendChild(btn);
+      });
+
+      const btnFinal = document.createElement('button');
+      btnFinal.innerText = '🔓 Tentar abrir a porta';
+      btnFinal.onclick = verificarSaida;
+      opcoes.appendChild(btnFinal);
+    }
+
+    function apresentarEnigma(enigma) {
+      enigmaAtual = enigma;
+      document.getElementById('descricao').innerText = enigma.texto;
+      document.getElementById('inputArea').style.display = 'block';
+      document.getElementById('resposta').value = '';
+      document.getElementById('feedback').innerText = '';
+      const img = document.getElementById('enigmaImg');
+      img.src = enigma.imagem;
+      img.style.display = 'block';
+    }
+
+    function verificarResposta() {
+      const input = document.getElementById('resposta').value.trim().toLowerCase();
+      const correta = enigmaAtual.resposta;
+      const id = enigmaAtual.id;
+      if (input.includes(correta)) {
+        document.getElementById('feedback').innerText = '✅ Resposta correta!';
+        resolvidos[id] = true;
+        setTimeout(mostrarMenu, 1500);
+      } else {
+        document.getElementById('feedback').innerText = '❌ Resposta errada. Tente novamente.';
+      }
+    }
+
+    function verificarSaida() {
+      const todosResolvidos = enigmas.every(e => resolvidos[e.id]);
+      if (todosResolvidos) {
+        document.getElementById('game').style.display = 'none';
+        document.getElementById('final').style.display = 'block';
+        document.getElementById('audioFinal').play();
+      } else {
+        document.getElementById('feedback').innerText = '🚪 A porta ainda está trancada. Resolva todos os enigmas primeiro.';
+      }
+    }
+  </script>
+</body>
+</html>
